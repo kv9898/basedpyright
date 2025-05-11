@@ -155,6 +155,7 @@ import { ClientCapabilities, InitializationOptions } from './types';
 import {
     InitStatus,
     IWorkspaceFactory,
+    LanguageServerSettings, // by kv9898
     WellKnownWorkspaceKinds,
     Workspace,
     WorkspaceFactory,
@@ -674,6 +675,16 @@ export abstract class LanguageServerBase implements LanguageServerInterface, Dis
                 )
             );
         }
+
+        // start kv9898: Find the "default" workspace to get settings from (pick the first one)
+        const langFeatures: LanguageServerSettings = {
+            definitionProvider: initializationOptions.languageServerSettings?.definitionProvider ?? true,
+            documentSymbolProvider: initializationOptions.languageServerSettings?.documentSymbolProvider ?? false,
+            hoverProvider: initializationOptions.languageServerSettings?.hoverProvider ?? false,
+            referencesProvider: initializationOptions.languageServerSettings?.referencesProvider ?? false,
+        };
+        // end kv9898
+
         const result: InitializeResult = {
             capabilities: {
                 textDocumentSync: { willSave: true, change: TextDocumentSyncKind.Incremental, openClose: true },
@@ -686,13 +697,13 @@ export abstract class LanguageServerBase implements LanguageServerInterface, Dis
                     ],
                     save: true,
                 },
-                definitionProvider: { workDoneProgress: true },
+                definitionProvider: langFeatures.definitionProvider, // by kv9898
                 declarationProvider: { workDoneProgress: true },
                 typeDefinitionProvider: { workDoneProgress: true },
-                referencesProvider: { workDoneProgress: true },
-                documentSymbolProvider: { workDoneProgress: true },
+                referencesProvider: langFeatures.referencesProvider, // by kv9898
+                documentSymbolProvider: langFeatures.documentSymbolProvider, //by kv9898
                 workspaceSymbolProvider: { workDoneProgress: true },
-                hoverProvider: { workDoneProgress: true },
+                hoverProvider: langFeatures.hoverProvider, // by kv9898
                 documentHighlightProvider: { workDoneProgress: true },
                 renameProvider: { prepareProvider: true, workDoneProgress: true },
                 completionProvider: {
