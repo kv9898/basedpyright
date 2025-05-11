@@ -67,7 +67,8 @@ export async function activate(context: ExtensionContext) {
         pyrightLanguageServerEnabled &&
         // undefined if the python extension isn't installed
         languageServerSetting &&
-        languageServerSetting !== 'None'
+        languageServerSetting !== 'None' && 
+        languageServerSetting !== 'Default'
     ) {
         const disablePythonLanguageServer = 'fix setting & use basedpyright LSP (recommended)';
         const keepUsingExistingLanguageServer = `disable basedpyright LSP`;
@@ -258,6 +259,7 @@ export async function activate(context: ExtensionContext) {
         initializationOptions: {
             diagnosticMode: workspace.getConfiguration('basedpyright.analysis').get('diagnosticMode'),
             disablePullDiagnostics: workspace.getConfiguration('basedpyright').get('disablePullDiagnostics'),
+            languageServerSettings: workspace.getConfiguration('basedpyright').get('languageServerSettings'), // by kv9898
         },
     };
 
