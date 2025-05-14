@@ -1,4 +1,4 @@
-name: Sync Fork with Upstream (Rebase)
+name: Sync Fork with Upstream
 
 on:
   schedule:
@@ -15,9 +15,19 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Sync with upstream (rebase)
-        uses: zhangnew/sync-upstream@v1
-        with:
-          upstream: DetachHead/basedpyright
-          upstream-branch: main
-          branch: main
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream and fetch
+        run: |
+          git remote add upstream https://github.com/DetachHead/basedpyright.git
+          git fetch upstream
+
+      - name: Merge upstream/main (even if diverged)
+        run: |
+          git merge upstream/main --no-edit --no-ff
+
+      - name: Push updated main to your fork
+        run: git push origin main
