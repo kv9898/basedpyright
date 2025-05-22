@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
@@ -734,6 +734,15 @@
   <a href="#renaming-packages-and-modules" class="md-nav__link">
     <span class="md-ellipsis">
       renaming packages and modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fixed-parsing-of-multi-line-parameter-descriptions-in-docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      fixed parsing of multi-line parameter descriptions in docstrings
     </span>
   </a>
   
@@ -1748,6 +1757,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#fixed-parsing-of-multi-line-parameter-descriptions-in-docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      fixed parsing of multi-line parameter descriptions in docstrings
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pylance-features-missing-from-basedpyright" class="md-nav__link">
     <span class="md-ellipsis">
       Pylance features missing from basedpyright
@@ -1846,6 +1864,11 @@ c:\project\asdf.ipynb - cell 2
 <h2 id="renaming-packages-and-modules">renaming packages and modules</h2>
 <p>when renaming a package or module, basedpyright will update all usages to the new name, just like pylance does:</p>
 <p><img alt="" src="https://github.com/user-attachments/assets/6207fe90-027a-4227-a1ed-d2c4406ad38c" /></p>
+<h2 id="fixed-parsing-of-multi-line-parameter-descriptions-in-docstrings">fixed parsing of multi-line parameter descriptions in docstrings</h2>
+<p>in pyright, if a parameter description spans more than one line, only the first line is shown when hovering over the parameter:</p>
+<p><img alt="alt text" src="../broken-docstring-parameter-descriptions.png" /></p>
+<p>this issue is fixed in pylance, but the fix was never ported to pyright, so we had to fix it ourselves:</p>
+<p><img alt="" src="../fixed-docstring-parameter-descriptions.png" /></p>
 <h2 id="pylance-features-missing-from-basedpyright">Pylance features missing from basedpyright</h2>
 <p>See the <a href="https://github.com/DetachHead/basedpyright/issues?q=is:issue+is:open+pylance+label:%22pylance+parity%22">open issues</a> related to feature parity with Pylance.</p>
 
@@ -1939,10 +1962,10 @@ c:\project\asdf.ipynb - cell 2
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.code.copy", "navigation.top", "navigation.instant"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "content.code.copy", "navigation.top", "navigation.instant"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
     
   </body>
