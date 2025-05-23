@@ -110,9 +110,24 @@ jobs:
       - name: get currently published npm package version
         if: github.ref == 'refs/heads/main'
         run: echo ::set-output name=VERSION_INFO::$(uv run npm view $(node -p "require(\"./package.json\").name")@=${{ steps.current-version.outputs.CURRENT_VERSION }})
-        id: version-was-changed
+        id: npm-version-was-changed
         working-directory: ${{ env.NPM_PACKAGE_DIR }}
 
+      # start kv9898's custom versioning logic
+      - name: Check if version tag exists
+        id: version-was-changed
+        run: |
+          VERSION="v${{ steps.current-version.outputs.CURRENT_VERSION }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "VERSION_INFO=$VERSION" >> $GITHUB_OUTPUT
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "$VERSION"
+            git push origin "$VERSION"
+            echo "VERSION_INFO=" >> $GITHUB_OUTPUT
+          fi
+      # end kv9898's custom versioning logic
       - name: set version for npm packages
         if: github.ref == 'refs/heads/main'
         run: uv run npm version ${{ steps.current-version.outputs.CURRENT_VERSION }} --workspaces --no-git-tag-version
@@ -193,7 +208,7 @@ jobs:
 
       - name: publish VSIX - open VSX
         if: github.ref == 'refs/heads/main' && steps.version-was-changed.outputs.VERSION_INFO == ''
-        run: ovsx publish --packagePath ${{ env.VSIX_DIR }}/${{ env.VSIX_NAME }} --pat ${{ secrets.OPEN_VSX_TOKEN }}
+        run: ovsx publish --packagePath ${{ env.VSIX_DIR }}/${{ env.VSIX_NAME }} --pat ${{ secrets.OPEN_VSX_TOKEN }} || echo "⚠️ Already published or failed, skipping"
 
       - uses: marvinpinto/action-automatic-releases@v1.2.1
         if: github.ref == 'refs/heads/main' && steps.version-was-changed.outputs.VERSION_INFO == ''
