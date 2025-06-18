@@ -130,6 +130,7 @@ export abstract class RealLanguageServer extends LanguageServerBase {
             // end kv9898
             inlayHints: {
                 callArgumentNames: true,
+                callArgumentNamesMatching: false,
                 functionReturnTypes: true,
                 variableTypes: true,
                 genericTypes: false,
