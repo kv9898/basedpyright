@@ -51,8 +51,8 @@ export interface ServerSettings {
     languageServerSettings?: LanguageServerSettings;
     inlayHints?: InlayHintSettings;
     useTypingExtensions?: boolean;
-
     fileEnumerationTimeoutInSec?: number | undefined;
+    autoFormatStrings?: boolean;
 }
 
 export interface MessageAction {
