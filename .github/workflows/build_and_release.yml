@@ -9,7 +9,9 @@ env:
   # prevent uv from constantly reinstalling the project and overwriting docstubs
   UV_NO_SYNC: true
 
-on: push
+on:
+  push:
+  workflow_dispatch:
 
 jobs:
   generate-docstubs-linux:
