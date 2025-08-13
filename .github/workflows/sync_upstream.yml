@@ -28,6 +28,9 @@ jobs:
       - name: Merge upstream/main (even if diverged)
         run: |
           git merge upstream/main --no-edit --no-ff
-
       - name: Push updated main to your fork
-        run: git push origin main
+        env:
+          TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+          git push origin main
