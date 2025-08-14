@@ -1979,7 +1979,11 @@
             "python.languageServer": "None",
             "python.analysis.typeCheckingMode": "off",
             "[python]": {
-                "editor.formatOnType": true
+                "editor.formatOnType": true,
+                "editor.quickSuggestions": {
+                    "strings": true
+                },
+                "editor.wordBasedSuggestions": "off"
             }
         },
         "jsonValidation": [
