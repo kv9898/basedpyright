@@ -702,7 +702,6 @@ export class SourceFile {
                 return tokenizerOutput!;
             },
             text: this._writableData.parsedFileContents,
-            lines: this._writableData.tokenizerLines!,
         };
     }
 
@@ -869,6 +868,7 @@ export class SourceFile {
 
                 // Create dummy parse results.
                 this._writableData.parsedFileContents = '';
+                this._writableData.tokenizerLines = new TextRangeCollection<TextRange>([]);
 
                 this._writableData.parserOutput = {
                     parseTree: ModuleNode.create({ start: 0, length: 0 }),
@@ -877,9 +877,8 @@ export class SourceFile {
                     containsWildcardImport: false,
                     typingSymbolAliases: new Map<string, string>(),
                     hasTypeAnnotations: false,
+                    lines: this._writableData.tokenizerLines,
                 };
-
-                this._writableData.tokenizerLines = new TextRangeCollection<TextRange>([]);
 
                 this._writableData.tokenizerOutput = {
                     tokens: new TextRangeCollection<Token>([]),
