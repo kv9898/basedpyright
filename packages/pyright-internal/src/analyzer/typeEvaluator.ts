@@ -15410,11 +15410,18 @@ export function createTypeEvaluator(
         }
 
         // Or if the object is in an untyped library that was explicitly mentioned.
-        if (type.shared && 'moduleName' in type.shared) {
-            const moduleName = type.shared.moduleName;
-            if (moduleIsInList(ruleset.allowedUntypedLibraries, moduleName)) {
-                return;
-            }
+        // Overloaded methods must be handled separately, as the module is stored on the implementation and the overloads.
+        let typeShared = type.shared;
+        if (type.category === TypeCategory.Overloaded) {
+            // We get the module from the first overload in case there's no implementation (eg. if the overload came from a stub file).
+            typeShared = OverloadedType.getOverloads(type)[0].shared;
+        }
+        if (
+            typeShared &&
+            'moduleName' in typeShared &&
+            moduleIsInList(ruleset.allowedUntypedLibraries, typeShared.moduleName)
+        ) {
+            return;
         }
 
         const nameValue = target.d.value;
