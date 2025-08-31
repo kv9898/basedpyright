@@ -21947,7 +21947,7 @@ export function createTypeEvaluator(
         }
 
         const fileInfo = AnalyzerNodeInfo.getFileInfo(node);
-        if (isAnnotationEvaluationPostponed(fileInfo) || options?.forwardRefs) {
+        if ((isAnnotationEvaluationPostponed(fileInfo) || options?.forwardRefs) && !options?.runtimeTypeExpression) {
             flags |= EvalFlags.ForwardRefs;
         } else if (options?.parsesStringLiteral) {
             flags |= EvalFlags.ParsesStringLiteral;
@@ -22724,6 +22724,7 @@ export function createTypeEvaluator(
                                 allowFinal: true,
                                 allowRequired: true,
                                 allowReadOnly: true,
+                                runtimeTypeExpression: true,
                             }).type
                         );
                     } else {
