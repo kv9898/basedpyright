@@ -40,44 +40,40 @@ type OptionalIfFalse<Bool extends boolean, T> = T | (Bool extends true ? never :
 /**
  * details about the difference between the previous version and the current version of the baseline file
  */
-class BaselineDiff<T extends boolean> {
-    readonly baselinedErrorCount: number;
-    readonly newErrorCount: number;
-    readonly diff: number;
-
-    constructor(
-        private _configOptions: ConfigOptions,
-        readonly previousBaseline: BaselineData,
-        readonly newBaseline: BaselineData,
-        private readonly _forced: T
-    ) {
-        this.baselinedErrorCount = Object.values(previousBaseline.files).flatMap((file) => file).length;
-        this.newErrorCount = Object.values(newBaseline.files).flatMap((file) => file).length;
-        this.diff = this.newErrorCount - this.baselinedErrorCount;
+const baselineSummaryMessage = <T extends boolean>(
+    configOptions: ConfigOptions,
+    previousBaseline: BaselineData,
+    newBaseline: BaselineData,
+    forced: T
+): OptionalIfFalse<T, string> => {
+    const baselinedErrorCount = Object.values(previousBaseline.files).flatMap((file) => file).length;
+    const newErrorCount = Object.values(newBaseline.files).flatMap((file) => file).length;
+    const diff = newErrorCount - baselinedErrorCount;
+    let message = '';
+    if (diff === 0) {
+        if (!forced) {
+            // if the error count didn't change and the baseline update was not explicitly requested by the user,
+            // that means nothing changed so don't show any message
+            return undefined as OptionalIfFalse<T, string>;
+        }
+        message += "error count didn't change";
+    } else if (diff > 0) {
+        message += `went up by ${diff}`;
+    } else {
+        message += `went down by ${diff * -1}`;
     }
 
-    getSummaryMessage = (): OptionalIfFalse<T, string> => {
-        let message = '';
-        if (this.diff === 0) {
-            if (!this._forced) {
-                // if the error count didn't change and the baseline update was not explicitly requested by the user,
-                // that means nothing changed so don't show any message
-                return undefined as OptionalIfFalse<T, string>;
-            }
-            message += "error count didn't change";
-        } else if (this.diff > 0) {
-            message += `went up by ${this.diff}`;
-        } else {
-            message += `went down by ${this.diff * -1}`;
-        }
-
-        return `updated ${this._configOptions.projectRoot.getRelativePath(
-            baselineFilePath(this._configOptions)
-        )} with ${pluralize(this.newErrorCount, 'error')} (${message})`;
-    };
-}
+    return `updated ${configOptions.projectRoot.getRelativePath(baselineFilePath(configOptions))} with ${pluralize(
+        newErrorCount,
+        'error'
+    )} (${message})`;
+};
 
 export class BaselineHandler {
+    /**
+     * project root can change and we need to invalidate the cache when that happens
+     */
+    private _cache?: { content: BaselineData | undefined; projectRoot: Uri };
     private _console: ConsoleInterface;
 
     constructor(private _fs: FileSystem, public configOptions: ConfigOptions, console: ConsoleInterface | undefined) {
@@ -89,19 +85,17 @@ export class BaselineHandler {
     }
 
     getContents = (): BaselineData | undefined => {
-        let baselineFileContents: string | undefined;
-        try {
-            baselineFileContents = this._fs.readFileSync(this.fileUri, 'utf8');
-        } catch (e) {
-            // assume the file didn't exist
-            return undefined;
+        if (!this._cache || this._cache.projectRoot !== this.configOptions.projectRoot) {
+            const result = this._getContents();
+            this._setCache(result);
+            return result;
+        } else {
+            return this._cache.content;
         }
-        try {
-            return JSON.parse(baselineFileContents);
-        } catch (e) {
-            this._console.error(`failed to parse baseline file - ${e}`);
-            return undefined;
-        }
+    };
+
+    invalidateCache = () => {
+        this._cache = undefined;
     };
 
     /**
@@ -118,7 +112,7 @@ export class BaselineHandler {
         force: T,
         removeDeletedFiles: boolean,
         filesWithDiagnostics: readonly FileDiagnostics[]
-    ): BaselineDiff<T> | undefined => {
+    ): string | undefined => {
         const baselineData = this.getContents();
         if (!force) {
             if (!baselineData) {
@@ -169,7 +163,8 @@ export class BaselineHandler {
             this._console.error(`failed to write baseline file - ${e}`);
             return undefined;
         }
-        return new BaselineDiff(this.configOptions, { files: previousBaselineFiles }, result, force);
+        this._setCache(result);
+        return baselineSummaryMessage(this.configOptions, { files: previousBaselineFiles }, result, force);
     };
 
     sortDiagnosticsAndMatchBaseline = (
@@ -236,15 +231,25 @@ export class BaselineHandler {
         return result;
     };
 
-    /**
-     * filters out diagnostics that are baselined, but keeps any that have been turned into hints. so you will need
-     * to filter it further by removing diagnostics with {@link DiagnosticCategory.Hint} if you want those removed as well
-     */
-    filterOutBaselinedDiagnostics = (filesWithDiagnostics: readonly FileDiagnostics[]): readonly FileDiagnostics[] =>
-        filesWithDiagnostics.map((file) => ({
-            ...file,
-            diagnostics: file.diagnostics.filter((diagnostic) => !diagnostic.baselined),
-        }));
+    private _getContents = (): BaselineData | undefined => {
+        let baselineFileContents: string | undefined;
+        try {
+            baselineFileContents = this._fs.readFileSync(this.fileUri, 'utf8');
+        } catch (e) {
+            // assume the file didn't exist
+            return undefined;
+        }
+        try {
+            return JSON.parse(baselineFileContents);
+        } catch (e) {
+            this._console.error(`failed to parse baseline file - ${e}`);
+            return undefined;
+        }
+    };
+
+    private _setCache = (content: BaselineData | undefined) => {
+        this._cache = { projectRoot: this.configOptions.projectRoot, content };
+    };
 
     private _formatUriForBaseline = (file: Uri) => {
         const relativePath = this.configOptions.projectRoot.getRelativePath(file);
