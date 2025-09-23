@@ -12,6 +12,7 @@ import {
     CompletionRequest,
     ConfigurationItem,
     DiagnosticSeverity,
+    DidChangeTextDocumentNotification,
     DocumentOnTypeFormattingRequest,
     InitializedNotification,
     InitializeRequest,
@@ -172,10 +173,17 @@ describe(`Basic language server tests`, () => {
         assert(completionItem);
     });
     describe('onTypeFormatting', () => {
-        const checkOnTypeFormatting = async (stringPrefix: string, shouldConvertString: boolean) => {
+        const caret = '[|/*marker*/|]';
+        const checkOnTypeFormatting = async (options: {
+            stringPrefix?: string;
+            stringContent?: string;
+            quoteCount: 1 | 3;
+            shouldConvertString: boolean;
+        }) => {
+            const quotes = options.quoteCount === 3 ? '"""' : '"';
             const code = `
 // @filename: test.py
-//// foo = ${stringPrefix}"[|/*marker*/|]"
+//// foo = ${options.stringPrefix ?? ''}${quotes}${options.stringContent ?? caret}${quotes}
         `;
             const info = await runLanguageServer(DEFAULT_WORKSPACE_ROOT, code, /* callInitialize */ true);
 
@@ -184,17 +192,25 @@ describe(`Basic language server tests`, () => {
             const fileUri = marker.fileUri;
             const text = info.testData.files.find((d) => d.fileName === marker.fileName)!.content;
             const parseResult = getParseResults(text);
+            const position = convertOffsetToPosition(marker.position, parseResult.tokenizerOutput.lines);
+            // need to send this notification first before onTypeFormatting.
+            // see https://github.com/microsoft/language-server-protocol/issues/1053#issuecomment-725468469
+            await info.connection.sendNotification(DidChangeTextDocumentNotification.type, {
+                textDocument: { uri: fileUri.toString(), version: 2 },
+                contentChanges: [{ range: { start: position, end: position }, text: '{}' }],
+            });
             const onTypeFormattingRequest = await info.connection.sendRequest(
                 DocumentOnTypeFormattingRequest.type,
                 {
                     textDocument: { uri: fileUri.toString() },
-                    position: convertOffsetToPosition(marker.position, parseResult.tokenizerOutput.lines),
+                    // need to add 1 to the position because it's inserting a character (i think)
+                    position: { line: position.line, character: position.character + 1 },
                     ch: '{',
                     options: { insertSpaces: true, tabSize: 4 },
                 },
                 CancellationToken.None
             );
-            if (shouldConvertString) {
+            if (options.shouldConvertString) {
                 const expectedPosition = { character: 6, line: 0 };
                 tExpect(onTypeFormattingRequest).toEqual([
                     { newText: 'f', range: { start: expectedPosition, end: expectedPosition } },
@@ -203,13 +219,26 @@ describe(`Basic language server tests`, () => {
                 tExpect(onTypeFormattingRequest).toBeNull();
             }
         };
-        test('normal string', () => checkOnTypeFormatting('', true));
-        test('already f-string', () => checkOnTypeFormatting('f', false));
-        test('r-string', () => checkOnTypeFormatting('r', true));
-        test('bytes', () => checkOnTypeFormatting('b', false));
-        test('t-string', () => checkOnTypeFormatting('t', false));
-        test('u-string', () => checkOnTypeFormatting('u', false));
-        test('r-string and b-string', () => checkOnTypeFormatting('rb', false));
+        test('normal string', () => checkOnTypeFormatting({ quoteCount: 1, shouldConvertString: true }));
+        test('already f-string', () =>
+            checkOnTypeFormatting({ stringPrefix: 'f', quoteCount: 1, shouldConvertString: false }));
+        test('r-string', () => checkOnTypeFormatting({ stringPrefix: 'r', quoteCount: 1, shouldConvertString: true }));
+        test('bytes', () => checkOnTypeFormatting({ stringPrefix: 'b', quoteCount: 1, shouldConvertString: false }));
+        test('t-string', () => checkOnTypeFormatting({ stringPrefix: 't', quoteCount: 1, shouldConvertString: false }));
+        test('u-string', () => checkOnTypeFormatting({ stringPrefix: 'u', quoteCount: 1, shouldConvertString: false }));
+        test('r-string and b-string', () =>
+            checkOnTypeFormatting({ stringPrefix: 'rb', quoteCount: 1, shouldConvertString: false }));
+        test('multiline string', () => checkOnTypeFormatting({ quoteCount: 3, shouldConvertString: true }));
+        describe('named unicode characters (\\N)', () => {
+            test('normal', () =>
+                checkOnTypeFormatting({ quoteCount: 1, stringContent: `\\N${caret}`, shouldConvertString: false }));
+            test('multiline string', () =>
+                checkOnTypeFormatting({ quoteCount: 3, stringContent: `\\N${caret}`, shouldConvertString: false }));
+            test('other characters in the string', () =>
+                checkOnTypeFormatting({ quoteCount: 1, stringContent: `asdf\\N${caret}`, shouldConvertString: false }));
+            test('off by 1', () =>
+                checkOnTypeFormatting({ quoteCount: 1, stringContent: `\\N ${caret}`, shouldConvertString: true }));
+        });
     });
 
     [false, true].forEach((supportsPullDiagnostics) => {
