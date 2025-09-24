@@ -34,3 +34,36 @@ the reason we added `reportUnreachable` to basedpyright was not just to identify
     ```
 
     normally `1 + ""` would be reported as a type error but pyright doesn't complain here, because unreachable code doesn't get type checked at all! this is bad of course, because chances are if your code contains an `if` statement like this, you're expecting it to be run on multiple different python versions.
+
+## `reportInvalidTypeVarUse`
+
+pyright incorrectly reports an error when a function contains a type var only in the return position, in cases where there's no valid alternative:
+
+!!! example
+
+    ```py
+    # error: TypeVar "T" appears only once in generic function signature
+    #   Use "object" instead
+    def empty_list[T]() -> list[T]:
+        return []
+
+    # using `object` as suggested will cause an error here:
+    foo: list[int] = empty_list()
+    ```
+
+basedpyright will not report this error if the type var is used only in the return position, as long as it's possible for the function to safely return that type at runtime.
+
+however the error will still be reported if the function's return type is just the type var itself, for example:
+
+!!! example
+
+    ```py
+    # error: TypeVar "T" appears only once in generic function signature
+    #   Use "Never" instead
+    def fn[T]() -> T:
+        ...
+
+    foo: int = fn()
+    ```
+
+    here, pyright will incorrectly suggest returning `object` instead, of `Never`. there's no way for this function to safely return a `T`, but changing its return type to `object` will cause an error on the usage. basedpyright will correctly suggest changing the return type to `Never` instead.
