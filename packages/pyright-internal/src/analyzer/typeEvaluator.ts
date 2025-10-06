@@ -28,7 +28,9 @@ import { convertOffsetsToRange, convertOffsetToPosition } from '../common/positi
 import {
     PythonVersion,
     pythonVersion3_11,
+    pythonVersion3_12,
     pythonVersion3_13,
+    pythonVersion3_14,
     pythonVersion3_6,
     pythonVersion3_7,
     pythonVersion3_9,
@@ -472,6 +474,7 @@ const nonSubscriptableTypes: Map<string, PythonVersion> = new Map([
     ['contextlib.AbstractContextManager', pythonVersion3_9],
     ['contextlib.AbstractAsyncContextManager', pythonVersion3_9],
     ['queue.Queue', pythonVersion3_9],
+    ['array.array', pythonVersion3_12],
 ]);
 
 // Some types that do not inherit from others are still considered
@@ -1040,7 +1043,16 @@ export function createTypeEvaluator(
                 getTypeCheckerInternalsType(node, 'TypedDictFallback') ?? getTypingType(node, '_TypedDict');
             prefetched.awaitableClass = getTypingType(node, 'Awaitable');
             prefetched.mappingClass = getTypingType(node, 'Mapping');
-            prefetched.templateClass = getTypeOfModule(node, 'Template', ['string', 'templatelib']);
+            if (
+                // if the configured pythonVersion is <3.14 but we're running in a python >=3.14 environment, this will cause
+                // templatelib.py to be incorrectly imported and treated as user code
+                PythonVersion.isGreaterOrEqualTo(
+                    AnalyzerNodeInfo.getFileInfo(node).executionEnvironment.pythonVersion,
+                    pythonVersion3_14
+                )
+            ) {
+                prefetched.templateClass = getTypeOfModule(node, 'Template', ['string', 'templatelib']);
+            }
 
             prefetched.supportsKeysAndGetItemClass = getTypeshedType(node, 'SupportsKeysAndGetItem');
             if (!prefetched.supportsKeysAndGetItemClass) {
