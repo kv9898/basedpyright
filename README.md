@@ -2,6 +2,8 @@
 
 <!-- --8<-- [start:header] -->
 
+> ⚠️ **ARCHIVED**: This project is no longer maintained. Consider using [Meta's pyrefly](https://github.com/facebook/pyrefly) instead, which provides similar functionality with better performance and active development.
+
 > 📌 **Note**: The badges below reflect the original [Basedpyright](https://github.com/detachhead/basedpyright) project, not this fork.
 
 [![pypi](https://img.shields.io/pypi/dm/basedpyright?logo=pypi&color=3775A9)](https://pypi.org/project/basedpyright/)
@@ -14,23 +16,32 @@
 
 <!-- --8<-- [end:header] -->
 
-> ✅ If you're using Positron, disable the built-in `pyright` extension to avoid conflicts.
+## 📦 Project Status
 
-**`basedpyright-for-positron`** is a fork of [Basedpyright](https://github.com/detachhead/basedpyright) by [@detachhead](https://github.com/detachhead), tailored for use in [Positron](https://positron.dev), a next-generation IDE for data science.
+**This project is archived and no longer maintained.**
 
-This fork avoids conflicts with Positron's built-in `positron-python` extension and adds settings-level toggles for LSP features like `hoverProvider` and `referencesProvider` which may duplicate Positron's built-in features.
+For a better alternative, we recommend [**Meta's pyrefly**](https://github.com/facebook/pyrefly), which offers:
+
+-   Enhanced type checking capabilities
+-   Better performance
+-   Active development and support
+-   Modern architecture
 
 ---
 
-### 📖 Documentation
+### 📖 Historical Documentation
 
-See [Basedpyright documentation](https://detachhead.github.io/basedpyright) for general usage and feature explanations. For Positron-specific behavior, see [the Positron docs](https://positron.dev/docs).
+**`basedpyright-for-positron`** was a fork of [Basedpyright](https://github.com/detachhead/basedpyright) by [@detachhead](https://github.com/detachhead), tailored for use in [Positron](https://positron.dev), a next-generation IDE for data science.
+
+This fork avoided conflicts with Positron's built-in `positron-python` extension and added settings-level toggles for LSP features like `hoverProvider` and `referencesProvider` which may duplicate Positron's built-in features.
+
+For historical reference, see [Basedpyright documentation](https://detachhead.github.io/basedpyright).
 
 ---
 
 ### 🔗 Credits
 
-This project builds on the great work of:
+This project built on the great work of:
 
 -   [Pyright](https://github.com/microsoft/pyright) by [Microsoft](https://github.com/microsoft)
 -   [Basedpyright](https://github.com/detachhead/basedpyright) by [@detachhead](https://github.com/detachhead)
