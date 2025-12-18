@@ -2,7 +2,7 @@
 
 <!-- --8<-- [start:header] -->
 
-> ⚠️ **ARCHIVED**: This project is no longer maintained. Consider using [Meta's pyrefly](https://github.com/facebook/pyrefly) instead, which provides similar functionality with better performance and active development.
+> ⚠️ **DEPRECATED**: This extension is no longer maintained. Consider using [Meta's pyrefly](https://github.com/facebook/pyrefly) instead, which has recently been bootstrapped by Positron and provides similar functionality with better performance and active development. Positron is also working on native support for basedpyright in future releases.
 
 > 📌 **Note**: The badges below reflect the original [Basedpyright](https://github.com/detachhead/basedpyright) project, not this fork.
 
